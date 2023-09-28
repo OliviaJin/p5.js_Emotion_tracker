@@ -11,49 +11,8 @@ const detection_options = {
 
 let capturedEmotion = '';
 
-function setup() {
-  createCanvas(360, 270);
-
-  // create a 'Capture' button
-  let captureButton = createButton('Capture');
-  captureButton.mousePressed(captureEmotion);
-
-  // setup the video and faceapi
-  video = createCapture(VIDEO);
-  video.size(width, height);
-  video.hide(); // Hide the video element, and just show the canvas
-  faceapi = ml5.faceApi(video, detection_options, modelReady)
-}
-
 function modelReady() {
   console.log('Model Ready!')
-  faceapi.detect(gotResults)
-}
-
-function gotResults(err, result) {
-  if (err) {
-    console.log(err)
-    return
-  }
-  detections = result;
-
-  // if there are faces detected, draw them!
-  if (detections) {
-    if (detections.length > 0) {
-      // get the expressions of the face
-      let expressions = detections[0].expressions;
-      let maxValue = 0;
-      let emotion = '';
-      for (let expression in expressions) {
-        if (expressions[expression] > maxValue) {
-          maxValue = expressions[expression];
-          emotion = expression;
-        }
-      }
-      // set the emotion as the capturedEmotion
-      capturedEmotion = emotion;
-    }
-  }
   faceapi.detect(gotResults)
 }
 
@@ -91,6 +50,18 @@ function captureEmotion() {
 let serial; // variable for the serial object
 
 function setup() {
+
+	createCanvas(360, 270);
+
+	// create a 'Capture' button
+	let captureButton = createButton('Capture');
+	captureButton.mousePressed(captureEmotion);
+  
+	// setup the video and faceapi
+	video = createCapture(VIDEO);
+	video.size(width, height);
+	video.hide(); // Hide the video element, and just show the canvas
+	faceapi = ml5.faceApi(video, detection_options, modelReady)
  
  serial = new p5.SerialPort();
 
@@ -110,6 +81,33 @@ function setup() {
  serial.on('close', gotClose)
 
 }
+
+function gotResults(err, result) {
+	if (err) {
+	  console.log(err)
+	  return
+	}
+	detections = result;
+  
+	// if there are faces detected, draw them!
+	if (detections) {
+	  if (detections.length > 0) {
+		// get the expressions of the face
+		let expressions = detections[0].expressions;
+		let maxValue = 0;
+		let emotion = '';
+		for (let expression in expressions) {
+		  if (expressions[expression] > maxValue) {
+			maxValue = expressions[expression];
+			emotion = expression;
+		  }
+		}
+		// set the emotion as the capturedEmotion
+		capturedEmotion = emotion;
+	  }
+	}
+	faceapi.detect(gotResults)
+  }
 
 
 var vid = document.getElementById('videoel');
