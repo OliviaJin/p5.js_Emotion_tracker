@@ -1,5 +1,91 @@
+let video;
+let faceapi;
+let detections = [];
 
+// by default all options are set to true
+const detection_options = {
+  withLandmarks: true,
+  withDescriptors: false,
+  withExpressions: true
+}
 
+let capturedEmotion = '';
+
+function setup() {
+  createCanvas(360, 270);
+
+  // create a 'Capture' button
+  let captureButton = createButton('Capture');
+  captureButton.mousePressed(captureEmotion);
+
+  // setup the video and faceapi
+  video = createCapture(VIDEO);
+  video.size(width, height);
+  video.hide(); // Hide the video element, and just show the canvas
+  faceapi = ml5.faceApi(video, detection_options, modelReady)
+}
+
+function modelReady() {
+  console.log('Model Ready!')
+  faceapi.detect(gotResults)
+}
+
+function gotResults(err, result) {
+  if (err) {
+    console.log(err)
+    return
+  }
+  detections = result;
+
+  // if there are faces detected, draw them!
+  if (detections) {
+    if (detections.length > 0) {
+      // get the expressions of the face
+      let expressions = detections[0].expressions;
+      let maxValue = 0;
+      let emotion = '';
+      for (let expression in expressions) {
+        if (expressions[expression] > maxValue) {
+          maxValue = expressions[expression];
+          emotion = expression;
+        }
+      }
+      // set the emotion as the capturedEmotion
+      capturedEmotion = emotion;
+    }
+  }
+  faceapi.detect(gotResults)
+}
+
+function draw() {
+  image(video, 0, 0)
+  if (detections) {
+    drawBox(detections);
+    drawFace(detections);
+  }
+
+  // display the captured emotion
+  textSize(32);
+  fill(255, 0, 0);
+  text(capturedEmotion, 10, height - 10);
+}
+
+function captureEmotion() {
+  // capture the current emotion and log it
+  if (detections && detections.length > 0) {
+    let expressions = detections[0].expressions;
+    let maxValue = 0;
+    let emotion = '';
+    for (let expression in expressions) {
+      if (expressions[expression] > maxValue) {
+        maxValue = expressions[expression];
+        emotion = expression;
+      }
+    }
+    capturedEmotion = emotion;
+    console.log('Captured Emotion:', emotion);
+  }
+}
 
 
 let serial; // variable for the serial object
